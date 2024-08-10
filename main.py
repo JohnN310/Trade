@@ -63,5 +63,57 @@ model.add(LSTM(50, return_sequences = False))
 model.add(Dense(25))
 model.add(Dense(1))
 
-# Compile the model: the optimizer is to improve upon the loss function and the loss function is to measure how well the model does.
+# Compile the model: the optimizer is to improve upon the loss function and the loss function is to measure how well the model does on training.
 model.compile(optimizer = 'adam', loss = 'mean_squared_error')
+
+#Train the model: epochs is the number of iterations for the entire dataset is passed forward and backwards 
+model.fit(x_train, y_train, batch_size = 1, epochs = 1)
+
+#Create the testing dataset 
+#Create a new array containing scaled values from index 1543 to 2003: this is for the scaled testing dataset 
+test_data = scaled_data[training_data_len - 60:, :]
+#Create the data sets x_test and y _test 
+x_test = []
+y_test = dataset[training_data_len:, :] #unscaled, actual values in the dataset
+for i in range (60, len(test_data)):
+    x_test.append(test_data[i-60:i,0])
+
+#Convert the data to a numpy array 
+x_test = np.array(x_test)
+
+#Reshape the data: x_test.shape[0] is the number of samples, x_test.shape[1] is the number of time stamps, and the number of features, which is the close price, is 1
+x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
+
+#Get the model's predeicted price values 
+predictions = model.predict(x_test)
+predictions = scaler.inverse_transform(predictions) # here we want predictions to contain the same values as y_test values
+
+#Get the root mean squared error (RMSE) - the lower value indicates a better fit, a value of 5 is pretty decent. 
+rmse = np.sqrt(np.mean(predictions - y_test)**2)
+print(rmse)
+
+#Plot the data 
+train = data[0:training_data_len]
+validation = data[training_data_len:]
+valid['Predictions'] = predictions
+#Visualize the data 
+plt.figure(figsize=(16,8))
+plt.title('Model')
+plt.xlabel('Date',fontsize = 18)
+plt.ylabel('Close Price USD ($)', fontsize=18)
+plt.plot(train['Close'])
+plt.plot(validation[['Close', 'Predictions']])
+plt.legend(['Train', 'Validation', 'Predictions'], loc = 'lower right')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
